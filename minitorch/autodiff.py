@@ -106,9 +106,19 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
             at the front of the result order list.
     """
     # BEGIN HW2_1
-    # TODO
-    
-    raise NotImplementedError("Task Autodiff Not Implemented Yet")
+    order = []
+    visited = set()
+
+    def dfs(node: Variable, order: List[Variable]) -> None:
+        if node.is_constant() or node.unique_id in visited:
+            return
+        visited.add(node.unique_id)
+        for parent in node.parents:
+            dfs(parent, order)
+        order.insert(0, node)
+
+    dfs(variable, order)
+    return order
     # END HW2_1
 
 
@@ -129,9 +139,18 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
         3. Otherwise, the derivative should be propagated via chain rule
     """
     # BEGIN HW2_1
-    # TODO
-   
-    raise NotImplementedError("Task Autodiff Not Implemented Yet")
+    # construct a dictionary to store the derivatives for each variable
+    derivatives = {
+        variable.unique_id: deriv
+    }
+    for node in topological_sort(variable):
+        node_deriv = derivatives.get(node.unique_id, 0)
+        if node.is_leaf():
+            node.accumulate_derivative(node_deriv)
+        else:
+            for parent, grad_contribution in node.chain_rule(node_deriv):
+                if not parent.is_constant():
+                    derivatives[parent.unique_id] = derivatives.get(parent.unique_id, 0) + grad_contribution
     # END HW2_1
 
 
